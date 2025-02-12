@@ -1,0 +1,26 @@
+{
+    "config": {
+      "step": {
+        "user": {
+          "title": "配置API",
+          "description": "配置Arona.icu API。",
+          "data": {
+            "url": "API URL",
+            "access_token": "访问令牌",
+            "usercode": "好友码"
+          }
+        },
+        "select": {
+          "title": "选择学生",
+          "description": "选择目标学生。",
+          "data": {
+            "stuid": "学生ID"
+          }
+        }
+      },
+      "error": {
+        "auth": "认证失败，请检查api配置。",
+        "no_student": "没有找到学生，可能是目标学生被移出助战，或api配置有误。"
+      }
+    }
+  }

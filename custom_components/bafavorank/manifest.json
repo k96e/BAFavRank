@@ -1,0 +1,9 @@
+{
+  "domain": "bafavorank",
+  "documentation": "https://github.com/k96e/BAFavRank",
+  "issue_tracker": "https://github.com/k96e/BAFavRank/issues",
+  "codeowners": ["@k96e"],
+  "name": "Blue Archive Favor Rank",
+  "version": "0.0.1",
+  "config_flow": true
+}
