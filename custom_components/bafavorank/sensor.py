@@ -7,7 +7,7 @@ from homeassistant.core import callback
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .utils import get_stu_name, get_level_by_rank
+from .utils import get_stu_name, get_level_by_rank, get_total_rank
 from .update_coordinator import BafavorankDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,6 +28,7 @@ async def async_setup_entry(
         RankSensor(hass, config, coordinator),
         ExpSensor(hass, config, coordinator),
         LevelExpSensor(hass, config, coordinator),
+        LevelRemainExpSensor(hass, config, coordinator),
         HundredRankSensor(hass, config, coordinator)
     ]
     async_add_entities(sensors, update_before_add=True)
@@ -117,6 +118,42 @@ class LevelExpSensor(CoordinatorEntity, SensorEntity):
         """Handle updated data from the coordinator."""
         value = get_level_by_rank(self.coordinator.data)[1]
         self._attr_native_value = value
+        self.async_write_ha_state()
+
+class LevelRemainExpSensor(CoordinatorEntity, SensorEntity):
+    """Exp needed to next favor level sensor."""
+
+    def __init__(self, hass: core.HomeAssistant, config: Dict[str, Any], coordinator) -> None:
+        """Initialize the sensor."""
+        self._config = config
+        self._hass = hass
+        self.coordinator = coordinator
+        self._attr_unique_id = f"{config['usercode']}_{config['stuid']}_level_remain_exp"
+        self.entity_id = f"sensor.{config['usercode']}_{config['stuid']}_level_remain_exp"
+        self._attr_name = f"{get_stu_name(config['stuid'])} 升级还需经验"
+        self._attr_has_entity_name = True
+        self._attr_icon = "mdi:heart"
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        super().__init__(coordinator)
+
+    @property
+    def native_value(self) -> Optional[int]:
+        """Return the state of the sensor."""
+        level = get_level_by_rank(self.coordinator.data)[0]
+        if level >= 100:
+            return 0
+        next_exp = get_total_rank(level+1, 0)
+        return next_exp - self.coordinator.data
+    
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        level = get_level_by_rank(self.coordinator.data)[0]
+        if level >= 100:
+            self._attr_native_value = 0
+        else:
+            next_exp = get_total_rank(level + 1, 0)
+            self._attr_native_value = next_exp - self.coordinator.data
         self.async_write_ha_state()
 
 class HundredRankSensor(CoordinatorEntity, SensorEntity):
