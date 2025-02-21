@@ -25,28 +25,20 @@ SELE_SCHEMA = vol.Schema(
     }
 )
 
-cached_resp = None
-
 async def validate_auth(user_input: Dict[str, Any], hass: core.HomeAssistant) -> None:
     """Validates a arona.icu auth.
 
     Raises a ValueError if invalid.
     """
-    global cached_resp
     session = async_get_clientsession(hass)
     try:
-        if not cached_resp:
-            resp = await session.post(
-                user_input[CONF_URL],
-                json={"friend": user_input[CONF_USERCODE]},
-                headers={"Authorization": user_input[CONF_ACCESS_TOKEN]},
-            )
-            response = await resp.json()
-            _LOGGER.info("Response: %s", response)
-            cached_resp = response
-        else:
-            response = cached_resp
-            _LOGGER.info("Cached response: %s", response)
+        resp = await session.post(
+            user_input[CONF_URL],
+            json={"friend": user_input[CONF_USERCODE]},
+            headers={"Authorization": user_input[CONF_ACCESS_TOKEN]},
+        )
+        response = await resp.json()
+        _LOGGER.info("Response: %s", response)
         assert response["message"] == "success" and response["crypt"] == False
         return response
     except Exception as e:
