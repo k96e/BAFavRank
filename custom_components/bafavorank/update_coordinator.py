@@ -45,6 +45,9 @@ class BafavorankDataUpdateCoordinator(DataUpdateCoordinator):
                 )
                 response = await resp.json()
                 total_rank = -1
+                if response["code"] == 4003:
+                    _LOGGER.warning("token quota exceeded")
+                    return self.data
                 for assist in response["data"]["assistInfoList"]:
                     if assist["uniqueId"] == self.stuid:
                         total_rank = get_total_rank(assist["favorRank"], assist["favorExp"])
