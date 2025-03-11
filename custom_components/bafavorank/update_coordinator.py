@@ -57,4 +57,4 @@ class BafavorankDataUpdateCoordinator(DataUpdateCoordinator):
                 return total_rank
         except Exception as e:
             _LOGGER.error("Error: %s", e)
-            raise UpdateFailed(e)
+            return self.data
