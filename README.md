@@ -13,4 +13,8 @@ Including data from both CN and global servers, but currently only Simplified Ch
 - 通过 [HACS](https://hacs.xyz/) 添加 Custom repositories ，仓库 `https://github.com/k96e/BAFavRank` ，类型 `Integration` ，并下载本集成，重启HomeAssistant
 - 游戏内确保需要追踪的学生放入任意助战位，并记下账号好友码
 - 进入HomeAssistant配置，添加集成 `Blue Archive Favor Rank` ，输入api key及好友码，选择需要追踪的学生
-- Done!
+- Done
+
+## It just works!
+![screenshot](img/shot.png)
+![100](img/100.jpg)
