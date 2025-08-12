@@ -36,6 +36,8 @@ class BafavorankDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> int:
         """Fetch data from arona.icu."""
         try:
+            if hasattr(self, 'data') and self.data == 240225:
+                return self.data
             async with async_timeout.timeout(10):
                 session = async_get_clientsession(self.hass)
                 resp = await session.post(
