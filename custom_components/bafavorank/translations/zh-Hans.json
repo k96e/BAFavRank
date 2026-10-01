@@ -7,7 +7,8 @@
           "data": {
             "url": "API URL",
             "access_token": "访问令牌",
-            "usercode": "好友码"
+            "usercode": "好友码",
+            "server": "服务器"
           }
         },
         "select": {
@@ -21,6 +22,21 @@
       "error": {
         "auth": "认证失败，请检查api配置。",
         "no_student": "没有找到学生，可能是目标学生被移出助战，或api配置有误。"
+      }
+    },
+    "options": {
+      "step": {
+        "init": {
+          "title": "修改服务器",
+          "description": "切换查询所用的服务器，保存后立即生效。",
+          "data": {
+            "server": "服务器"
+          }
+        }
+      },
+      "error": {
+        "auth": "请求失败，请检查该服务器下好友码是否正确。",
+        "no_student": "该服务器下没有找到当前追踪的学生，可能是目标学生未放入助战。"
       }
     }
   }

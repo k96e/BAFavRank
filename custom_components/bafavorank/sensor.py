@@ -18,7 +18,7 @@ async def async_setup_entry(
     async_add_entities,
 ):
     """Setup sensors from a config entry created in the integrations UI."""
-    config = config_entry.data
+    config = {**config_entry.data, **config_entry.options}
     _LOGGER.info("Setting up sensor for %s", config)
 
     coordinator = BafavorankDataUpdateCoordinator(hass, config)
