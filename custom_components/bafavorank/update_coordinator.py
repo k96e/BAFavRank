@@ -8,7 +8,7 @@ from homeassistant import core
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_SERVER, DEFAULT_SERVER
 from .utils import get_total_rank
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ class BafavorankDataUpdateCoordinator(DataUpdateCoordinator):
         self.access_token = config["access_token"]
         self.usercode = config["usercode"]
         self.stuid = config["stuid"]
+        self.server = int(config.get(CONF_SERVER, DEFAULT_SERVER))
         super().__init__(
             hass,
             _LOGGER,
@@ -42,7 +43,7 @@ class BafavorankDataUpdateCoordinator(DataUpdateCoordinator):
                 session = async_get_clientsession(self.hass)
                 resp = await session.post(
                     self.url,
-                    json={"friend": self.usercode},
+                    json={"friend": self.usercode, "server": self.server},
                     headers={"Authorization": self.access_token},
                 )
                 response = await resp.json()

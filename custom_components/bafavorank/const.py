@@ -3,6 +3,21 @@ DOMAIN = "bafavorank"
 
 CONF_USERCODE = "usercode"
 CONF_STUID = "stuid"
+CONF_SERVER = "server"
+
+DEFAULT_SERVER = 1
+
+DICT_SERVER = {
+    1: "国服",
+    2: "B服",
+    3: "日服",
+    4: "综合",
+    5: "全球",
+    6: "港澳台",
+    7: "韩服",
+    8: "亚服",
+    9: "北美服"
+}
 
 DICT_STU = {
     10000: "阿露",

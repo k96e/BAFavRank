@@ -3,20 +3,35 @@ from typing import Any, Dict, Optional
 
 from homeassistant import config_entries, core
 from homeassistant.const import CONF_ACCESS_TOKEN, CONF_URL
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import (
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 
-from .const import DOMAIN, CONF_USERCODE, CONF_STUID, DICT_STU
+from .const import DOMAIN, CONF_USERCODE, CONF_STUID, CONF_SERVER, DEFAULT_SERVER, DICT_STU, DICT_SERVER
 from .utils import get_stu_id, get_stu_name
 
 _LOGGER = logging.getLogger(__name__)
 
+SERVER_SELECTOR = SelectSelector(
+    SelectSelectorConfig(
+        options=[SelectOptionDict(value=str(k), label=v) for k, v in DICT_SERVER.items()],
+        mode=SelectSelectorMode.DROPDOWN,
+    )
+)
+
 AUTH_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_URL,default="https://api.arona.icu/api/friends/refresh"): cv.string,
-        vol.Required(CONF_ACCESS_TOKEN): cv.string, 
-        vol.Required(CONF_USERCODE): cv.string
+        vol.Required(CONF_ACCESS_TOKEN): cv.string,
+        vol.Required(CONF_USERCODE): cv.string,
+        vol.Required(CONF_SERVER, default=str(DEFAULT_SERVER)): SERVER_SELECTOR
     }
 )
 SELE_SCHEMA = vol.Schema(
@@ -34,7 +49,10 @@ async def validate_auth(user_input: Dict[str, Any], hass: core.HomeAssistant) ->
     try:
         resp = await session.post(
             user_input[CONF_URL],
-            json={"friend": user_input[CONF_USERCODE]},
+            json={
+                "friend": user_input[CONF_USERCODE],
+                "server": int(user_input.get(CONF_SERVER, DEFAULT_SERVER))
+            },
             headers={"Authorization": user_input[CONF_ACCESS_TOKEN]},
         )
         response = await resp.json()
@@ -65,10 +83,17 @@ class BAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     data: Optional[Dict[str, Any]]
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: config_entries.ConfigEntry):
+        """Get the options flow for this handler."""
+        return BAOptionsFlow(config_entry)
+
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None):
         """Invoked when a user initiates a flow via the user interface."""
         errors: Dict[str, str] = {}
         if user_input is not None:
+            user_input[CONF_SERVER] = int(user_input.get(CONF_SERVER, DEFAULT_SERVER))
             try:
                 self.temp_resp = await validate_auth(user_input, self.hass)
             except ValueError:
@@ -104,5 +129,37 @@ class BAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="select", data_schema=vol.Schema({
                 vol.Required(CONF_STUID): vol.In(options)
+            }), errors=errors
+        )
+
+class BAOptionsFlow(config_entries.OptionsFlow):
+    """Options flow to change server at any time."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self._entry = config_entry
+
+    async def async_step_init(self, user_input: Optional[Dict[str, Any]] = None):
+        """Manage the server option."""
+        errors: Dict[str, str] = {}
+        config = {**self._entry.data, **self._entry.options}
+        if user_input is not None:
+            server = int(user_input[CONF_SERVER])
+            try:
+                response = await validate_auth({**config, CONF_SERVER: server}, self.hass)
+            except ValueError:
+                errors["base"] = "auth"
+            if not errors:
+                try:
+                    await validate_select(config, response, self.hass)
+                except ValueError:
+                    errors["base"] = "no_student"
+            if not errors:
+                return self.async_create_entry(title="", data={CONF_SERVER: server})
+
+        current = int(config.get(CONF_SERVER, DEFAULT_SERVER))
+        return self.async_show_form(
+            step_id="init", data_schema=vol.Schema({
+                vol.Required(CONF_SERVER, default=str(current)): SERVER_SELECTOR
             }), errors=errors
         )
